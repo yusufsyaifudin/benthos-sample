@@ -3,6 +3,7 @@
 
 # file system
 .DS_Store
+golang/artifacts
 
 # file output
 service_calc_out.txt
