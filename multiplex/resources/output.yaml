@@ -1,0 +1,50 @@
+# define resources
+output_resources:
+  - label: out_file_dlq
+    file:
+      path: /Users/yusufs/Project/benthos-sample/out_file_dlq.txt
+
+  # --- output for calc service
+  - label: out_file_calc_service
+    file:
+      path: /Users/yusufs/Project/benthos-sample/service_calc_out.txt
+
+  - label: out_file_calc_service_error
+    file:
+      path: /Users/yusufs/Project/benthos-sample/service_calc_error.txt
+
+  # this process should never go to DLQ because if we add to DLQ it will cause ordering message error
+  - label: out_http_calc_service
+    http_client:
+      url: "http://localhost:8080"
+      verb: POST
+      headers:
+        Content-Type: application/json
+      rate_limit: ""
+      timeout: 5s
+      max_in_flight: 64
+      retries: 3
+      retry_period: 1s
+      max_retry_backoff: 10s
+
+  # --- output for wallet service
+  - label: out_file_wallet_service
+    file:
+      path: /Users/yusufs/Project/benthos-sample/service_wallet_out.txt
+
+  - label: out_file_wallet_service_error
+    file:
+      path: /Users/yusufs/Project/benthos-sample/service_wallet_error.txt
+
+  - label: out_http_wallet_service
+    http_client:
+      url: "http://localhost:8081"
+      verb: POST
+      headers:
+        Content-Type: application/json
+      rate_limit: ""
+      timeout: 5s
+      max_in_flight: 1
+      retries: 3
+      retry_period: 1s
+      max_retry_backoff: 10s

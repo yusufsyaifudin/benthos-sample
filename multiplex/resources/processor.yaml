@@ -1,0 +1,16 @@
+# define resources
+processor_resources:
+  - label: proc_calc_service_json
+    # will produce json message: {"mathString": "message from kafka"}
+    bloblang: |-
+      let ctn = content().string()
+      root.mathString = $ctn
+
+  - label: proc_wallet_service_add_meta
+    # will add kafkaPartition and kafkaOffset on the message key
+    # i.e: original json message is {"walletID": "a"}
+    # will become: {"kafkaPartition": "1", "kafkaOffset": "1", "walletID": "a"}
+    bloblang: |-
+      root = this
+      root.kafkaPartition = meta("kafka_partition")
+      root.kafkaOffset = meta("kafka_offset")

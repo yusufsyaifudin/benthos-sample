@@ -1,0 +1,27 @@
+# doing pipeline
+input:
+  resource: in_kafka_local
+
+output:
+  # Processors applied to message sent to all brokered outputs.
+  # https://www.benthos.dev/docs/components/processors/try
+  processors:
+    - resource: proc_wallet_service_add_meta
+
+  switch:
+    cases:
+      - check: errored()
+        output:
+          resource: out_file_wallet_service_proc_error
+          processors:
+            - resource: proc_catch_error
+
+      - check: meta("kafka_topic") == "walletservice"
+        output:
+          broker:
+            pattern: fan_out
+            outputs:
+              - resource: out_file_wallet_service
+              - fallback:
+                  - resource: out_http_wallet_service
+                  - resource: out_file_wallet_service_error # DLQ if HTTP service is failed after retry

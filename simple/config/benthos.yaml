@@ -1,0 +1,17 @@
+logger:
+  level: ALL
+  format: logfmt
+  add_timestamp: true
+  static_fields:
+    '@service': benthos
+
+tracer:
+  jaeger:
+    agent_address: localhost:6831
+    sampler_type: const
+    sampler_param: 1
+
+# Config fields, showing default values
+metrics:
+  json_api: {}
+  mapping: ""

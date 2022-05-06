@@ -1,0 +1,23 @@
+processor_resources:
+  - label: proc_wallet_service_add_meta
+    # will add kafkaPartition and kafkaOffset on the message key
+    # i.e: original json message is {"walletID": "a"}
+    # will become: {"reqID": "unique id", "time": "2022-05-06T11:11:59.019238+07:00", "kafkaPartition": "1", "kafkaOffset": "1", "walletID": "a"}
+    bloblang: |-
+      root = this
+      root.reqID = ksuid()
+      root.time = now()
+      root.kafkaPartition = meta("kafka_partition")
+      root.kafkaOffset = meta("kafka_offset")
+
+  - label: proc_catch_error
+    # will convert the data from kafka to:
+    # {"content": "real message from kafka", "meta": {"kafka_topic": "walletservice"}, "error": "string error", "reqID": "unique id", "time": "2022-05-06T11:11:59.019238+07:00"}
+    # this processor is useful when we receive non-valid JSON string payload from Kafka
+    bloblang: |-
+      let ctn = content().string()
+      root.content = $ctn
+      root.meta = meta()
+      root.error = error()
+      root.reqID = ksuid()
+      root.time = now()

@@ -1,0 +1,64 @@
+# MY_IP=$(ipconfig getifaddr en0) docker-compose up
+version: '3.5'
+
+services:
+  kafdrop:
+    image: obsidiandynamics/kafdrop:3.30.0
+    platform: linux/amd64
+    container_name: kafdrop
+    restart: always
+    ports:
+      - "9000:9000"
+    networks:
+      - benthos-network
+    environment:
+      KAFKA_BROKERCONNECT: kafka:9092
+
+  zookeeper:
+    image: wurstmeister/zookeeper:3.4.6
+    platform: linux/amd64
+    container_name: zookeeper
+    restart: always
+    ports:
+      - "2181:2181"
+    networks:
+      - benthos-network
+
+  kafka:
+    image: wurstmeister/kafka:2.13-2.8.1
+    platform: linux/arm64
+    container_name: kafka
+    restart: always
+    ports:
+      - "9092:9092"
+    networks:
+      - benthos-network
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_CREATE_TOPICS: "simple:4:1,calcservice:1:1,walletservice:1:1,emailservice:4:1" # topic:partition:replicas
+      KAFKA_ADVERTISED_HOST_NAME: ${MY_IP} # docker-machine ip
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.33
+    platform: linux/arm64
+    container_name: jaeger
+    restart: always
+    ports:
+      - "5775:5775/udp"
+      - "6831:6831/udp"
+      - "6832:6832/udp"
+      - "5778:5778"
+      - "16686:16686"
+      - "14268:14268"
+      - "9411:9411"
+    networks:
+      - benthos-network
+    environment:
+      - COLLECTOR_ZIPKIN_HTTP_PORT=9411
+
+networks:
+  benthos-network:
+    name: benthos-network

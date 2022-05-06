@@ -1,0 +1,6 @@
+logger:
+  level: ALL
+  format: logfmt
+  add_timestamp: true
+  static_fields:
+    '@service': benthos

@@ -1,0 +1,26 @@
+output_resources:
+  # --- output for wallet service
+  - label: out_file_wallet_service
+    file:
+      path: /Users/yusufs/Project/benthos-sample/service_wallet_out.txt
+
+  - label: out_file_wallet_service_error
+    file:
+      path: /Users/yusufs/Project/benthos-sample/service_wallet_error.txt
+
+  - label: out_file_wallet_service_proc_error
+    file:
+      path: /Users/yusufs/Project/benthos-sample/service_wallet_proc_error.txt
+
+  - label: out_http_wallet_service
+    http_client:
+      url: "http://localhost:8081"
+      verb: POST
+      headers:
+        Content-Type: application/json
+      rate_limit: ""
+      timeout: 5s
+      max_in_flight: 1
+      retries: 3
+      retry_period: 3s
+      max_retry_backoff: 10s

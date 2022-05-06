@@ -1,0 +1,33 @@
+# doing pipeline
+input:
+  resource: in_kafka_calc_service
+
+output:
+  switch:
+    cases:
+      - check: meta("kafka_topic") == "calcservice"
+        output:
+          broker:
+            pattern: fan_out
+            outputs:
+              - resource: out_file_calc_service
+              - resource: out_http_calc_service
+                # Processors only applied to message sent to http.
+                processors:
+                  - resource: proc_calc_service_json
+
+      - check: meta("kafka_topic") == "walletservice"
+        output:
+          broker:
+            pattern: fan_out
+            outputs:
+              - resource: out_file_wallet_service
+                processors:
+                  - resource: proc_wallet_service_add_meta
+              - resource: out_http_wallet_service
+                processors:
+                  - resource: proc_wallet_service_add_meta
+
+      - check: errored()
+        output:
+          resource: out_file_dlq

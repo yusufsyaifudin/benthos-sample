@@ -1,0 +1,10 @@
+input_resources:
+  - label: in_kafka_local
+    kafka:
+      addresses:
+        - localhost:9092
+      topics:
+        - walletservice
+      consumer_group: "benthos_consumer"
+      # if strict ordered processing is required then this value must be set to 1 in order to process shard messages in lock-step.
+      checkpoint_limit: 1 # https://www.benthos.dev/docs/components/inputs/kafka/#checkpoint_limit

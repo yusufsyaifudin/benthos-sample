@@ -1,0 +1,21 @@
+# define resources
+input_resources:
+  - label: in_kafka_calc_service
+    kafka:
+      addresses:
+        - localhost:9092
+      topics:
+        - calcservice
+      consumer_group: "benthos_consumer12"
+      # if strict ordered processing is required then this value must be set to 1 in order to process shard messages in lock-step.
+      checkpoint_limit: 1
+
+  - label: in_kafka_wallet_service
+    kafka:
+      addresses:
+        - localhost:9092
+      topics:
+        - walletservice
+      consumer_group: "benthos_consumer11"
+      # if strict ordered processing is required then this value must be set to 1 in order to process shard messages in lock-step.
+      checkpoint_limit: 1

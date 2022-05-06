@@ -1,0 +1,13 @@
+# IDE
+.idea
+
+# file system
+.DS_Store
+
+# file output
+service_calc_out.txt
+service_calc_error.txt
+service_wallet_out.txt
+service_wallet_error.txt
+service_email_fallback.txt
+service_wallet_proc_error.txt
