@@ -343,3 +343,23 @@ The content of file `service_wallet_out.txt` will be appended with new data:
 
 The `kafkaOffset` is 1002 because the offset 1001 is used by previous data when we try to publish non-valid JSON string.
 
+
+
+## Generate Key store kafka
+
+```shell
+$ mkdir -p config/kafka/cert
+$ keytool -keystore config/kafka/cert/kafka.server.keystore.jks -alias localhost -validity 365 -genkey
+$ keytool -importkeystore -srckeystore config/kafka/cert/kafka.server.keystore.jks -destkeystore config/kafka/cert/kafka.server.keystore.jks -deststoretype pkcs12
+$ openssl req -new -x509 -keyout config/kafka/cert/ca-key -out config/kafka/cert/ca-cert -days 365
+$ keytool -keystore config/kafka/cert/kafka.server.truststore.jks -alias CARoot -import -file config/kafka/cert/ca-cert
+```
+
+Sign cert
+
+```shell
+$ keytool -keystore config/kafka/cert/kafka.server.keystore.jks -alias localhost -certreq -file config/kafka/cert/cert-file
+$ openssl x509 -req -CA config/kafka/cert/ca-cert -CAkey config/kafka/cert/ca-key -in config/kafka/cert/cert-file -out config/kafka/cert/cert-signed -days 365 -CAcreateserial -passin pass:mypassword
+$ keytool -keystore config/kafka/cert/kafka.server.keystore.jks -alias CARoot -import -file config/kafka/cert/ca-cert
+$ keytool -keystore config/kafka/cert/kafka.server.keystore.jks -alias localhost -import -file config/kafka/cert/cert-signed
+```

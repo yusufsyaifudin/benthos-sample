@@ -1,0 +1,73 @@
+# Don't forget to increase Docker memory to 8GB. https://github.com/confluentinc/cp-all-in-one/issues/62#issuecomment-767163890
+version: '3.5'
+
+services:
+  kafdrop:
+    image: obsidiandynamics/kafdrop:3.30.0
+    platform: linux/amd64
+    container_name: kafdrop
+    restart: always
+    ports:
+      - "9000:9000"
+    depends_on:
+      - kafka1
+    environment:
+      KAFKA_BROKERCONNECT: kafka1:9092
+
+  zk1:
+    image: confluentinc/cp-zookeeper:7.1.1
+    container_name: zk1
+    platform: linux/amd64
+    restart: always
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_SASL_ENABLED: false
+
+  kafka1:
+    image: confluentinc/cp-kafka:7.1.1
+    container_name: kafka1
+    platform: linux/amd64
+    restart: always
+    depends_on:
+      - zk1
+    ports:
+      # kcat -C -b localhost:9094 -X security.protocol=SASL_PLAINTEXT -X sasl.mechanism=PLAIN -X sasl.username=admin -X sasl.password=admin-secret -L
+      - "9094:9094"
+
+      # kcat -C -b localhost:9092 -L
+      - "9092:9092"
+      - "9101:9101"
+    environment:
+      # zookeeper
+      ZOOKEEPER_SASL_ENABLED: false
+      KAFKA_ZOOKEEPER_CONNECT: 'zk1:2181'
+
+      KAFKA_BROKER_ID: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+
+      # no auth
+      #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      #KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092
+
+      # with auth: sasl
+      # https://stackoverflow.com/a/57626716
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT
+      # localhost version is for external docker
+      KAFKA_ADVERTISED_HOST_NAME: ${MY_IP}
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://${MY_IP}:9092,SASL_PLAINTEXT://${MY_IP}:9094
+      KAFKA_LISTENERS: PLAINTEXT://kafka1:9092,SASL_PLAINTEXT://kafka1:9094
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/kafka/jaas.conf"
+      KAFKA_INTER_BROKER_LISTENER_NAME: SASL_PLAINTEXT
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+
+    volumes:
+      - ./config/kafka/jaas.conf:/etc/kafka/jaas.conf
